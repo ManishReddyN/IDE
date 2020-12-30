@@ -1,0 +1,29 @@
+.ace_dark.ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {
+  background-color: #3a4867;
+}
+.ace_dark.ace_editor.ace_autocomplete .ace_completion-highlight {
+  color: #71b3e9;
+}
+.ace_gutter {
+  z-index: 0;
+}
+body {
+  font-family: monospace !important;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  font-family: monospace !important;
+}
+.ace_editor.ace_autocomplete .ace_line-hover {
+  border: 1px solid #4b81f7;
+  background: rgba(156, 219, 255, 0.4);
+}
+.ace_dark.ace_editor.ace_autocomplete .ace_line-hover {
+  border: 1px solid rgba(3, 67, 104, 0.8);
+  background: #40607e;
+}
