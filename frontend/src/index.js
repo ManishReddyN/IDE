@@ -2,16 +2,24 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import { extendTheme, ChakraProvider } from "@chakra-ui/react";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Provider } from "react-redux";
+import { createStore } from "redux";
+import codeApp from "./store/code/code";
 const config = {
   useSystemColorMode: false,
   initialColorMode: "dark",
 };
 const customTheme = extendTheme({ config });
+
+const store = createStore(codeApp);
+
 ReactDOM.render(
-  <ChakraProvider theme={customTheme}>
-    <App />
-  </ChakraProvider>,
+  <Provider store={store}>
+    <ChakraProvider theme={customTheme}>
+      <App />
+    </ChakraProvider>
+  </Provider>,
   document.getElementById("root")
 );
 

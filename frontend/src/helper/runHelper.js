@@ -4,7 +4,7 @@ export const runHelper = (runArgs) => {
   for (var i in runArgs) {
     formData.append(i, runArgs[i]);
   }
-  console.log(formData);
+
   return fetch("https://rextester.com/rundotnet/api", {
     method: "POST",
     body: formData,

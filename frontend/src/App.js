@@ -36,7 +36,10 @@ import { runHelper } from "./helper/runHelper";
 import { BiLink, BiRun, BiSave } from "react-icons/bi";
 import { MdInput } from "react-icons/md";
 import { VscOutput } from "react-icons/vsc";
+import { useDispatch, useSelector } from "react-redux";
+import { updateCode } from "./store/code/code";
 
+//ACE-Editor Settings and API Settings
 const languages = ["c", "c++", "java", "python"];
 const choice = [6, 7, 4, 24];
 const compilerArgs = [
@@ -88,39 +91,64 @@ languages.forEach((lang) => {
   if (lang === "c" || lang === "c++") lang = "c_cpp";
   require(`ace-builds/src-noconflict/mode-${lang}`);
 });
-function App() {
+
+//-------------------------------------------------------------------------------
+
+function App({ entry = 0 }) {
+  const codeGlobal = useSelector((state) => state.code);
+  const dispatch = useDispatch();
   const toast = useToast();
-  const [Language, setLanguage] = useState(() => {
-    if (localStorage.getItem("code")) {
-      return localStorage.getItem("code")[0];
-    } else return "python";
-  });
+
+  //STATES
+  const [Language, setLanguage] = useState(codeGlobal.language);
   const [Mode, setMode] = useState("python");
   const [Choice, setChoice] = useState(24);
   const [Output, setOutput] = useState("Run To Generate Output");
-  const [Pro, setPro] = useState(`print("Python is the Best")`);
+  const [Pro, setPro] = useState(codeGlobal.code);
   const [Input, setInput] = useState("");
   const [CArgs, setCArgs] = useState("");
   const [Status, setStatus] = useState();
   const [Stats, setStats] = useState();
   const [Loading, setLoading] = useState(false);
   const [Warn, setWarn] = useState(false);
+  //-----------------------------
 
   useEffect(() => {
-    let localValues = loadStorage();
-    if (localValues !== undefined) {
-      setLanguage(localValues[0]);
-      setPro(localValues[1]);
-      let index = languages.indexOf(localValues[0]);
-      setCArgs(compilerArgs[index]);
-      setChoice(choice[index]);
-      if (index === 0 || index === 1) {
-        setMode("c_cpp");
-      } else {
-        setMode(localValues[0]);
+    if (entry === 0) {
+      let localValues = loadStorage();
+      if (localValues !== undefined) {
+        setLanguage(localValues[0]);
+        setPro(localValues[1]);
+        let index = languages.indexOf(localValues[0]);
+        setCArgs(compilerArgs[index]);
+        setChoice(choice[index]);
+        if (index === 0 || index === 1) {
+          setMode("c_cpp");
+        } else {
+          setMode(localValues[0]);
+        }
       }
     }
+    //eslint-disable-next-line
   }, [Loading]);
+
+  useEffect(() => {
+    dispatch(updateCode({ language: Language, code: Pro }));
+    console.log(codeGlobal);
+    setLoading(true);
+    let code = [];
+    if (typeof window !== undefined) {
+      if (localStorage.getItem("code")) {
+        code = JSON.parse(localStorage.getItem("code"));
+        code = [];
+      }
+      code.push(Language);
+      code.push(Pro);
+      localStorage.setItem("code", JSON.stringify(code));
+    }
+    setLoading(false);
+    //eslint-disable-next-line
+  }, [Pro, Language]);
 
   const loadStorage = () => {
     if (typeof window !== undefined) {
@@ -134,7 +162,6 @@ function App() {
   };
 
   async function onChange(newValue) {
-    console.log(newValue);
     await setPro(newValue);
   }
 
@@ -146,12 +173,13 @@ function App() {
   };
 
   const save = () => {
+    dispatch(updateCode({ language: Language, code: Pro }));
+    console.log(codeGlobal);
     setLoading(true);
     let code = [];
     if (typeof window !== undefined) {
       if (localStorage.getItem("code")) {
         code = JSON.parse(localStorage.getItem("code"));
-        console.log("lc", code);
         code = [];
       }
       code.push(Language);
@@ -161,12 +189,12 @@ function App() {
     setLoading(false);
   };
   const run = () => {
+    dispatch(updateCode({ language: Language, code: Pro }));
     setLoading(true);
     let code = [];
     if (typeof window !== undefined) {
       if (localStorage.getItem("code")) {
         code = JSON.parse(localStorage.getItem("code"));
-        console.log("lc", code);
         code = [];
       }
       code.push(Language);
@@ -205,11 +233,56 @@ function App() {
         console.log(err);
       });
   };
+  const runAndLink = () => {
+    dispatch(updateCode({ language: Language, code: Pro }));
+    setLoading(true);
+    let code = [];
+    if (typeof window !== undefined) {
+      if (localStorage.getItem("code")) {
+        code = JSON.parse(localStorage.getItem("code"));
+        code = [];
+      }
+      code.push(Language);
+      code.push(Pro);
+      localStorage.setItem("code", JSON.stringify(code));
+    }
+    setOutput("running...");
+    runHelper(runArgs)
+      .then((data) => {
+        if (data.Errors !== null) {
+          setOutput("Errors:\n" + data.Errors);
+          setStatus("error");
+          setStats(data.Stats);
+        } else if (data.Warnings && data.Result) {
+          setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
+          setStatus("warning");
+          setStats(data.Stats);
+        } else if (data.Result) {
+          setStatus("success");
+          setOutput(data.Result);
+          setStats(data.Stats);
+        } else if (data.Warnings) {
+          setOutput("Warnings:" + data.Warnings);
+          setStatus("warning");
+          setStats(data.Stats);
+        } else {
+          setOutput("Please try again");
+          if (data.Stats !== undefined) {
+            setStatus("error");
+            setStats(data.Stats);
+          }
+        }
+        
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const NewlineText = (props) => {
     const text = props.text;
     text.replace(" ", "\u00a0");
-    console.log(text);
     return text
       .split("\n")
       .map((str) => <p style={{ whiteSpace: "pre-wrap" }}>{str}</p>);
@@ -253,7 +326,7 @@ function App() {
                       <MenuItemOption
                         key={language}
                         value={language}
-                        onClick={() => {
+                        onClick={async () => {
                           setWarn(false);
                           if (language === "c" || language === "c++") {
                             setMode("c_cpp");

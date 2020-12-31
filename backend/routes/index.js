@@ -2,5 +2,6 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/index");
 router.get("/", controller.root);
-router.get("/test", controller.test);
+router.post("/postCode", controller.newCode);
+router.post("/getCode", controller.getCode);
 module.exports = router;
