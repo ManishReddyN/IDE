@@ -9,6 +9,7 @@ exports.root = (req, res) => {
 
 exports.newCode = async (req, res, next) => {
   let { language, code, input, output } = req.body;
+  console.log(language, code, input, output);
   let shortid = "";
   try {
     while (1) {

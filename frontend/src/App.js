@@ -13,7 +13,6 @@ import {
   Heading,
   Textarea,
   Container,
-  HStack,
   Menu,
   MenuButton,
   MenuOptionGroup,
@@ -29,15 +28,22 @@ import {
   AlertDescription,
   useToast,
   Icon,
+  Flex,
+  Spacer,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Col, Row } from "reactstrap";
+import { Col, PopoverBody, PopoverHeader, Row } from "reactstrap";
 import { runHelper } from "./helper/runHelper";
 import { BiLink, BiRun, BiSave } from "react-icons/bi";
 import { MdInput } from "react-icons/md";
 import { VscOutput } from "react-icons/vsc";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCode } from "./store/code/code";
+// import { newCode } from "./helper/linkHelper";
 
 //ACE-Editor Settings and API Settings
 const languages = ["c", "c++", "java", "python"];
@@ -233,52 +239,72 @@ function App({ entry = 0 }) {
         console.log(err);
       });
   };
-  const runAndLink = () => {
-    dispatch(updateCode({ language: Language, code: Pro }));
-    setLoading(true);
-    let code = [];
-    if (typeof window !== undefined) {
-      if (localStorage.getItem("code")) {
-        code = JSON.parse(localStorage.getItem("code"));
-        code = [];
-      }
-      code.push(Language);
-      code.push(Pro);
-      localStorage.setItem("code", JSON.stringify(code));
-    }
-    setOutput("running...");
-    runHelper(runArgs)
-      .then((data) => {
-        if (data.Errors !== null) {
-          setOutput("Errors:\n" + data.Errors);
-          setStatus("error");
-          setStats(data.Stats);
-        } else if (data.Warnings && data.Result) {
-          setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
-          setStatus("warning");
-          setStats(data.Stats);
-        } else if (data.Result) {
-          setStatus("success");
-          setOutput(data.Result);
-          setStats(data.Stats);
-        } else if (data.Warnings) {
-          setOutput("Warnings:" + data.Warnings);
-          setStatus("warning");
-          setStats(data.Stats);
-        } else {
-          setOutput("Please try again");
-          if (data.Stats !== undefined) {
-            setStatus("error");
-            setStats(data.Stats);
-          }
-        }
-        
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  // const runAndLink = () => {
+  //   dispatch(updateCode({ language: Language, code: Pro }));
+  //   setLoading(true);
+  //   let code = [];
+  //   if (typeof window !== undefined) {
+  //     if (localStorage.getItem("code")) {
+  //       code = JSON.parse(localStorage.getItem("code"));
+  //       code = [];
+  //     }
+  //     code.push(Language);
+  //     code.push(Pro);
+  //     localStorage.setItem("code", JSON.stringify(code));
+  //   }
+  //   setOutput("running...");
+  //   let output = "";
+  //   runHelper(runArgs)
+  //     .then((data) => {
+  //       if (data.Errors !== null) {
+  //         setOutput("Errors:\n" + data.Errors);
+  //         output = "Errors:\n" + data.Errors;
+  //         setStatus("error");
+  //         setStats(data.Stats);
+  //       } else if (data.Warnings && data.Result) {
+  //         setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
+  //         output = data.Result + "\n \nWarnings:\n" + data.Warnings;
+  //         setStatus("warning");
+  //         setStats(data.Stats);
+  //       } else if (data.Result) {
+  //         setStatus("success");
+  //         setOutput(data.Result);
+  //         output = data.Result;
+  //         setStats(data.Stats);
+  //       } else if (data.Warnings) {
+  //         setOutput("Warnings:" + data.Warnings);
+  //         output = "Warnings:" + data.Warnings;
+  //         setStatus("warning");
+  //         setStats(data.Stats);
+  //       } else {
+  //         setOutput("Please try again");
+  //         output = "Please try again";
+  //         if (data.Stats !== undefined) {
+  //           setStatus("error");
+  //           setStats(data.Stats);
+  //         }
+  //       }
+
+  //       setLoading(false);
+  //       newCode({
+  //         language: Language,
+  //         code: Pro,
+  //         input: Input,
+  //         output: output,
+  //       })
+  //         .then((data) => {
+  //           if (data.error) {
+  //             console.log(data.error);
+  //           } else {
+  //             console.log(data);
+  //           }
+  //         })
+  //         .catch((err) => console.log(err));
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+  // };
 
   const NewlineText = (props) => {
     const text = props.text;
@@ -368,20 +394,45 @@ function App({ entry = 0 }) {
             />
           </Center>
           <Box padding="20px">
-            <HStack>
-              <Button width="33%" size="lg" colorScheme="blue" onClick={save}>
-                <Icon as={BiSave} w={6} h={6} />
-                Save Locally
+            <Flex>
+              <Button size="lg" colorScheme="blue" onClick={save}>
+                <Icon as={BiSave} marginRight="3px" />
+                Save
               </Button>
-              <Button width="33%" size="lg" colorScheme="blue" onClick={run}>
-                <Icon as={BiRun} w={6} h={6} />
+              <Spacer />
+              <Popover label="Coming Soon" size="md">
+                <PopoverTrigger>
+                  <Button size="lg" colorScheme="blue">
+                    <Icon as={BiLink} marginRight="3px" />
+                    Link
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  color="white"
+                  bg="blue.800"
+                  borderColor="blue.800"
+                  textAlign="center"
+                >
+                  <PopoverArrow />
+                  <PopoverHeader
+                    pt={4}
+                    fontWeight="bold"
+                    border="0"
+                    bg="blue.700"
+                  >
+                    COMING SOON!
+                  </PopoverHeader>
+                  <PopoverBody>
+                    The feature to create code link will be live very shortly
+                  </PopoverBody>
+                </PopoverContent>
+              </Popover>
+              <Spacer />
+              <Button size="lg" colorScheme="blue" onClick={run}>
+                <Icon as={BiRun} marginRight="3px" />
                 Run
               </Button>
-              <Button width="33%" size="lg" colorScheme="blue">
-                <Icon as={BiLink} w={6} h={6} />
-                Run & Generate Link
-              </Button>
-            </HStack>
+            </Flex>
           </Box>
           <Alert></Alert>
         </Col>

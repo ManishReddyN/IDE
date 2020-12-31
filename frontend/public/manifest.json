@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Code Runner",
+  "name": "Online Compiler & Debugger",
   "icons": [
     {
       "src": "favicon.ico",

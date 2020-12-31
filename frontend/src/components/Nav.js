@@ -13,7 +13,7 @@ export default function Nav() {
         <Center>
           <Icon as={AiFillCode} w={8} h={8} />
           <Text fontFamily="monospace" paddingLeft="5px" as="cite">
-            Run_Code
+            Code_Runner
           </Text>
         </Center>
       </Heading>

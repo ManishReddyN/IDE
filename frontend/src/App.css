@@ -27,3 +27,9 @@ p {
   border: 1px solid rgba(3, 67, 104, 0.8);
   background: #40607e;
 }
+.popover-header {
+  background-color: #2a4365 !important;
+}
+.popover-body {
+  color: #fff !important;
+}
