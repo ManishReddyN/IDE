@@ -6,6 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Provider } from "react-redux";
 import { createStore } from "redux";
 import codeApp from "./store/code/code";
+import Routes from "./Routes";
 const config = {
   useSystemColorMode: false,
   initialColorMode: "dark",
@@ -17,7 +18,7 @@ const store = createStore(codeApp);
 ReactDOM.render(
   <Provider store={store}>
     <ChakraProvider theme={customTheme}>
-      <App />
+      <Routes />
     </ChakraProvider>
   </Provider>,
   document.getElementById("root")

@@ -1,5 +1,9 @@
 const Codes = require("../models/codes.js");
-const { nanoid } = require("nanoid");
+const { customAlphabet } = require("nanoid");
+const nanoid = customAlphabet(
+  "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  7
+);
 
 exports.root = (req, res) => {
   return res.status(200).json({
@@ -9,17 +13,12 @@ exports.root = (req, res) => {
 
 exports.newCode = async (req, res, next) => {
   let { language, code, input, output } = req.body;
-  console.log(language, code, input, output);
   let shortid = "";
   try {
     while (1) {
-      shortid = nanoid(6);
-      console.log(shortid);
-      let ch = /^[a-zA-Z0-9]+$/.test(shortid[0]);
-      if (!ch) continue;
+      shortid = nanoid();
       const check = await Codes.findOne({ shortid });
       if (!check) {
-        console.log("in");
         break;
       }
     }

@@ -1,7 +1,6 @@
-const API = "http://runcodebe.azurewebsites.net/";
+const API = "http://localhost:8000/";
 export const newCode = (postCode) => {
-  console.log(postCode);
-  return fetch(`${API}newCode`, {
+  return fetch(`${API}postCode`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -10,7 +9,6 @@ export const newCode = (postCode) => {
     body: JSON.stringify(postCode),
   })
     .then((response) => {
-      console.log("hello");
       return response.json();
     })
     .catch((err) => console.log(err));

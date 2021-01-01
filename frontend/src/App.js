@@ -30,20 +30,16 @@ import {
   Icon,
   Flex,
   Spacer,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Col, PopoverBody, PopoverHeader, Row } from "reactstrap";
+import { Col, Row } from "reactstrap";
 import { runHelper } from "./helper/runHelper";
 import { BiLink, BiRun, BiSave } from "react-icons/bi";
 import { MdInput } from "react-icons/md";
 import { VscOutput } from "react-icons/vsc";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCode } from "./store/code/code";
-// import { newCode } from "./helper/linkHelper";
+import { newCode } from "./helper/linkHelper";
 
 //ACE-Editor Settings and API Settings
 const languages = ["c", "c++", "java", "python"];
@@ -101,6 +97,8 @@ languages.forEach((lang) => {
 //-------------------------------------------------------------------------------
 
 function App({ entry = 0 }) {
+  const domain = "http://localhost:3000/";
+
   const codeGlobal = useSelector((state) => state.code);
   const dispatch = useDispatch();
   const toast = useToast();
@@ -116,6 +114,7 @@ function App({ entry = 0 }) {
   const [Status, setStatus] = useState();
   const [Stats, setStats] = useState();
   const [Loading, setLoading] = useState(false);
+  const [LinkLoading, setLinkLoading] = useState("");
   const [Warn, setWarn] = useState(false);
   //-----------------------------
 
@@ -136,7 +135,7 @@ function App({ entry = 0 }) {
       }
     }
     //eslint-disable-next-line
-  }, [Loading]);
+  }, [Loading, LinkLoading]);
 
   useEffect(() => {
     dispatch(updateCode({ language: Language, code: Pro }));
@@ -195,8 +194,8 @@ function App({ entry = 0 }) {
     setLoading(false);
   };
   const run = () => {
-    dispatch(updateCode({ language: Language, code: Pro }));
     setLoading(true);
+    dispatch(updateCode({ language: Language, code: Pro }));
     let code = [];
     if (typeof window !== undefined) {
       if (localStorage.getItem("code")) {
@@ -239,72 +238,76 @@ function App({ entry = 0 }) {
         console.log(err);
       });
   };
-  // const runAndLink = () => {
-  //   dispatch(updateCode({ language: Language, code: Pro }));
-  //   setLoading(true);
-  //   let code = [];
-  //   if (typeof window !== undefined) {
-  //     if (localStorage.getItem("code")) {
-  //       code = JSON.parse(localStorage.getItem("code"));
-  //       code = [];
-  //     }
-  //     code.push(Language);
-  //     code.push(Pro);
-  //     localStorage.setItem("code", JSON.stringify(code));
-  //   }
-  //   setOutput("running...");
-  //   let output = "";
-  //   runHelper(runArgs)
-  //     .then((data) => {
-  //       if (data.Errors !== null) {
-  //         setOutput("Errors:\n" + data.Errors);
-  //         output = "Errors:\n" + data.Errors;
-  //         setStatus("error");
-  //         setStats(data.Stats);
-  //       } else if (data.Warnings && data.Result) {
-  //         setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
-  //         output = data.Result + "\n \nWarnings:\n" + data.Warnings;
-  //         setStatus("warning");
-  //         setStats(data.Stats);
-  //       } else if (data.Result) {
-  //         setStatus("success");
-  //         setOutput(data.Result);
-  //         output = data.Result;
-  //         setStats(data.Stats);
-  //       } else if (data.Warnings) {
-  //         setOutput("Warnings:" + data.Warnings);
-  //         output = "Warnings:" + data.Warnings;
-  //         setStatus("warning");
-  //         setStats(data.Stats);
-  //       } else {
-  //         setOutput("Please try again");
-  //         output = "Please try again";
-  //         if (data.Stats !== undefined) {
-  //           setStatus("error");
-  //           setStats(data.Stats);
-  //         }
-  //       }
+  const runAndLink = () => {
+    dispatch(updateCode({ language: Language, code: Pro }));
+    setLoading(true);
+    setLinkLoading("Generating Link...");
+    console.log(Loading);
+    let code = [];
+    if (typeof window !== undefined) {
+      if (localStorage.getItem("code")) {
+        code = JSON.parse(localStorage.getItem("code"));
+        code = [];
+      }
+      code.push(Language);
+      code.push(Pro);
+      localStorage.setItem("code", JSON.stringify(code));
+    }
+    setOutput("running...");
+    let output = "";
+    runHelper(runArgs)
+      .then((data) => {
+        if (data.Errors !== null) {
+          setOutput("Errors:\n" + data.Errors);
+          output = "Errors:\n" + data.Errors;
+          setStatus("error");
+          setStats(data.Stats);
+        } else if (data.Warnings && data.Result) {
+          setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
+          output = data.Result + "\n \nWarnings:\n" + data.Warnings;
+          setStatus("warning");
+          setStats(data.Stats);
+        } else if (data.Result) {
+          setStatus("success");
+          setOutput(data.Result);
+          output = data.Result;
+          setStats(data.Stats);
+        } else if (data.Warnings) {
+          setOutput("Warnings:" + data.Warnings);
+          output = "Warnings:" + data.Warnings;
+          setStatus("warning");
+          setStats(data.Stats);
+        } else {
+          setOutput("Please try again");
+          output = "Please try again";
+          if (data.Stats !== undefined) {
+            setStatus("error");
+            setStats(data.Stats);
+          }
+        }
 
-  //       setLoading(false);
-  //       newCode({
-  //         language: Language,
-  //         code: Pro,
-  //         input: Input,
-  //         output: output,
-  //       })
-  //         .then((data) => {
-  //           if (data.error) {
-  //             console.log(data.error);
-  //           } else {
-  //             console.log(data);
-  //           }
-  //         })
-  //         .catch((err) => console.log(err));
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
-  // };
+        newCode({
+          language: Language,
+          code: Pro,
+          input: Input,
+          output: output,
+        })
+          .then((data) => {
+            if (data.error) {
+              console.log(data.error);
+            } else {
+              setLinkLoading(domain + data.shortid);
+              console.log(data);
+            }
+          })
+          .catch((err) => console.log(err));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    setLoading(false);
+  };
 
   const NewlineText = (props) => {
     const text = props.text;
@@ -395,46 +398,54 @@ function App({ entry = 0 }) {
           </Center>
           <Box padding="20px">
             <Flex>
-              <Button size="lg" colorScheme="blue" onClick={save}>
+              <Button
+                size="lg"
+                colorScheme="blue"
+                onClick={save}
+                marginLeft="3px"
+                marginRight="3px"
+              >
                 <Icon as={BiSave} marginRight="3px" />
                 Save
               </Button>
               <Spacer />
-              <Popover label="Coming Soon" size="md">
-                <PopoverTrigger>
-                  <Button size="lg" colorScheme="blue">
-                    <Icon as={BiLink} marginRight="3px" />
-                    Link
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  color="white"
-                  bg="blue.800"
-                  borderColor="blue.800"
-                  textAlign="center"
-                >
-                  <PopoverArrow />
-                  <PopoverHeader
-                    pt={4}
-                    fontWeight="bold"
-                    border="0"
-                    bg="blue.700"
-                  >
-                    COMING SOON!
-                  </PopoverHeader>
-                  <PopoverBody>
-                    The feature to create code link will be live very shortly
-                  </PopoverBody>
-                </PopoverContent>
-              </Popover>
-              <Spacer />
-              <Button size="lg" colorScheme="blue" onClick={run}>
+              <Button
+                size="lg"
+                colorScheme="blue"
+                onClick={run}
+                marginLeft="3px"
+                marginRight="3px"
+              >
                 <Icon as={BiRun} marginRight="3px" />
                 Run
               </Button>
+              <Spacer />
+              <Button
+                size="lg"
+                colorScheme="blue"
+                onClick={runAndLink}
+                marginLeft="3px"
+                marginRight="3px"
+              >
+                <Icon as={BiLink} marginRight="3px" />
+                Link
+              </Button>
             </Flex>
           </Box>
-          <Alert></Alert>
+          {LinkLoading && (
+            <Alert width="100%" padding="20px">
+              {LinkLoading && (
+                <AlertDescription>
+                  {LinkLoading === "Generating Link..." && (
+                    <AlertDescription>{LinkLoading}</AlertDescription>
+                  )}
+                  {LinkLoading !== "Generating Link..." && (
+                    <Link href={LinkLoading}>{LinkLoading}</Link>
+                  )}
+                </AlertDescription>
+              )}
+            </Alert>
+          )}
         </Col>
         <Col xs="12" md="4">
           <VStack width="100%">
@@ -453,7 +464,7 @@ function App({ entry = 0 }) {
               />
             </Box>
             {Loading && (
-              <Box width="100%" marginTop="20px">
+              <Box width="100%" padding="20px">
                 <Center>
                   <CircularProgress isIndeterminate />
                 </Center>
