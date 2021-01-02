@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const app = express();
 const mongoose = require("mongoose");
 const routes = require("./routes/index");
-const cors = require("cors");
+
 connectionString = process.env.MONGO_URL;
 port = process.env.PORT || 8000;
 mongoose
@@ -22,14 +22,14 @@ mongoose
   });
 
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "https://runcode.ml");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
   next();
 });
-app.use(cors());
+
 app.use(bodyParser.json());
 app.use("/", routes);
 

@@ -1,11 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App";
 import { extendTheme, ChakraProvider } from "@chakra-ui/react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Provider } from "react-redux";
-import { createStore } from "redux";
-import codeApp from "./store/code/code";
 import Routes from "./Routes";
 const config = {
   useSystemColorMode: false,
@@ -13,17 +9,9 @@ const config = {
 };
 const customTheme = extendTheme({ config });
 
-const store = createStore(codeApp);
-
 ReactDOM.render(
-  <Provider store={store}>
-    <ChakraProvider theme={customTheme}>
-      <Routes />
-    </ChakraProvider>
-  </Provider>,
+  <ChakraProvider theme={customTheme}>
+    <Routes />
+  </ChakraProvider>,
   document.getElementById("root")
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals

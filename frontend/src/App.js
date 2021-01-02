@@ -30,15 +30,14 @@ import {
   Icon,
   Flex,
   Spacer,
+  IconButton,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Col, Row } from "reactstrap";
+import { Col, Row, Spinner } from "reactstrap";
 import { runHelper } from "./helper/runHelper";
 import { BiLink, BiRun, BiSave } from "react-icons/bi";
-import { MdInput } from "react-icons/md";
+import { MdContentCopy, MdInput } from "react-icons/md";
 import { VscOutput } from "react-icons/vsc";
-import { useDispatch, useSelector } from "react-redux";
-import { updateCode } from "./store/code/code";
 import { newCode } from "./helper/linkHelper";
 
 //ACE-Editor Settings and API Settings
@@ -96,19 +95,17 @@ languages.forEach((lang) => {
 
 //-------------------------------------------------------------------------------
 
-function App({ entry = 0 }) {
-  const domain = "http://localhost:3000/";
+function App({ entry = 1 }) {
+  const domain = "https://runcode.ml/";
 
-  const codeGlobal = useSelector((state) => state.code);
-  const dispatch = useDispatch();
   const toast = useToast();
 
   //STATES
-  const [Language, setLanguage] = useState(codeGlobal.language);
+  const [Language, setLanguage] = useState("python");
   const [Mode, setMode] = useState("python");
   const [Choice, setChoice] = useState(24);
   const [Output, setOutput] = useState("Run To Generate Output");
-  const [Pro, setPro] = useState(codeGlobal.code);
+  const [Pro, setPro] = useState("print('Python is the best!')");
   const [Input, setInput] = useState("");
   const [CArgs, setCArgs] = useState("");
   const [Status, setStatus] = useState();
@@ -116,10 +113,13 @@ function App({ entry = 0 }) {
   const [Loading, setLoading] = useState(false);
   const [LinkLoading, setLinkLoading] = useState("");
   const [Warn, setWarn] = useState(false);
+  const [CodeWarn, setCodeWarn] = useState(false);
+  const [Entry, setEntry] = useState(entry);
+  const [Error, setError] = useState(false);
   //-----------------------------
 
   useEffect(() => {
-    if (entry === 0) {
+    if (Entry === 0) {
       let localValues = loadStorage();
       if (localValues !== undefined) {
         setLanguage(localValues[0]);
@@ -133,13 +133,46 @@ function App({ entry = 0 }) {
           setMode(localValues[0]);
         }
       }
+    } else if (Entry === 1) {
+      console.log(Entry);
+      let localValues = loadStorage();
+      if (localValues !== undefined) {
+        setLanguage(localValues[0]);
+        setPro(localValues[1]);
+        setInput(localValues[2]);
+        console.log(localValues[3]);
+        setOutput(localValues[3]);
+        let index = languages.indexOf(localValues[0]);
+        setCArgs(compilerArgs[index]);
+        setChoice(choice[index]);
+        if (index === 0 || index === 1) {
+          setMode("c_cpp");
+        } else {
+          setMode(localValues[0]);
+        }
+      }
+      setEntry(0);
+    } else if (Entry === 2) {
+      setError(true);
+      let localValues = loadStorage();
+      if (localValues !== undefined) {
+        setLanguage(localValues[0]);
+        setPro(localValues[1]);
+        let index = languages.indexOf(localValues[0]);
+        setCArgs(compilerArgs[index]);
+        setChoice(choice[index]);
+        if (index === 0 || index === 1) {
+          setMode("c_cpp");
+        } else {
+          setMode(localValues[0]);
+        }
+      }
+      setEntry(0);
     }
     //eslint-disable-next-line
   }, [Loading, LinkLoading]);
 
   useEffect(() => {
-    dispatch(updateCode({ language: Language, code: Pro }));
-    console.log(codeGlobal);
     setLoading(true);
     let code = [];
     if (typeof window !== undefined) {
@@ -149,6 +182,8 @@ function App({ entry = 0 }) {
       }
       code.push(Language);
       code.push(Pro);
+      code.push(Input);
+      code.push(Output);
       localStorage.setItem("code", JSON.stringify(code));
     }
     setLoading(false);
@@ -160,14 +195,14 @@ function App({ entry = 0 }) {
       if (localStorage.getItem("code")) {
         return JSON.parse(localStorage.getItem("code"));
       } else {
-        let code = ["python", ""];
+        let code = ["python", "", "", "Run to Generate Output"];
         localStorage.setItem("code", JSON.stringify(code));
       }
     }
   };
 
-  async function onChange(newValue) {
-    await setPro(newValue);
+  function onChange(newValue) {
+    setPro(newValue);
   }
 
   var runArgs = {
@@ -178,8 +213,6 @@ function App({ entry = 0 }) {
   };
 
   const save = () => {
-    dispatch(updateCode({ language: Language, code: Pro }));
-    console.log(codeGlobal);
     setLoading(true);
     let code = [];
     if (typeof window !== undefined) {
@@ -189,13 +222,14 @@ function App({ entry = 0 }) {
       }
       code.push(Language);
       code.push(Pro);
+      code.push(Input);
+      code.push(Output);
       localStorage.setItem("code", JSON.stringify(code));
     }
     setLoading(false);
   };
-  const run = () => {
-    setLoading(true);
-    dispatch(updateCode({ language: Language, code: Pro }));
+
+  const localStorageSetter = (output = Output) => {
     let code = [];
     if (typeof window !== undefined) {
       if (localStorage.getItem("code")) {
@@ -204,33 +238,52 @@ function App({ entry = 0 }) {
       }
       code.push(Language);
       code.push(Pro);
+      code.push(Input);
+      code.push(output);
       localStorage.setItem("code", JSON.stringify(code));
+      console.log(JSON.parse(localStorage.getItem("code")));
     }
+  };
+
+  const run = () => {
+    setLoading(true);
+    localStorageSetter();
     setOutput("running...");
+    let output = "";
     runHelper(runArgs)
       .then((data) => {
         if (data.Errors !== null) {
-          setOutput("Errors:\n" + data.Errors);
+          setOutput(data.Result + "\nErrors:\n" + data.Errors);
           setStatus("error");
           setStats(data.Stats);
+          output = data.Result + "\nErrors:\n" + data.Errors;
+          localStorageSetter(output);
         } else if (data.Warnings && data.Result) {
           setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
           setStatus("warning");
           setStats(data.Stats);
+          output = data.Result + "\n \nWarnings:\n" + data.Warnings;
+          localStorageSetter(output);
         } else if (data.Result) {
           setStatus("success");
           setOutput(data.Result);
           setStats(data.Stats);
+          output = data.Result;
+          localStorageSetter(output);
         } else if (data.Warnings) {
           setOutput("Warnings:" + data.Warnings);
           setStatus("warning");
           setStats(data.Stats);
+          output = "Warnings:" + data.Warnings;
+          localStorageSetter(output);
         } else {
           setOutput("Please try again");
+          output = "Please try again";
           if (data.Stats !== undefined) {
             setStatus("error");
             setStats(data.Stats);
           }
+          localStorageSetter(output);
         }
         setLoading(false);
       })
@@ -239,8 +292,8 @@ function App({ entry = 0 }) {
       });
   };
   const runAndLink = () => {
-    dispatch(updateCode({ language: Language, code: Pro }));
     setLoading(true);
+    setCodeWarn(true);
     setLinkLoading("Generating Link...");
     console.log(Loading);
     let code = [];
@@ -251,6 +304,8 @@ function App({ entry = 0 }) {
       }
       code.push(Language);
       code.push(Pro);
+      code.push(Input);
+      code.push(Output);
       localStorage.setItem("code", JSON.stringify(code));
     }
     setOutput("running...");
@@ -258,8 +313,8 @@ function App({ entry = 0 }) {
     runHelper(runArgs)
       .then((data) => {
         if (data.Errors !== null) {
-          setOutput("Errors:\n" + data.Errors);
-          output = "Errors:\n" + data.Errors;
+          setOutput(data.Result + "\nErrors:\n" + data.Errors);
+          output = data.Result + "\nErrors:\n" + data.Errors;
           setStatus("error");
           setStats(data.Stats);
         } else if (data.Warnings && data.Result) {
@@ -312,9 +367,7 @@ function App({ entry = 0 }) {
   const NewlineText = (props) => {
     const text = props.text;
     text.replace(" ", "\u00a0");
-    return text
-      .split("\n")
-      .map((str) => <p style={{ whiteSpace: "pre-wrap" }}>{str}</p>);
+    return <p style={{ whiteSpace: "pre-wrap" }}>{text}</p>;
   };
 
   const handleInput = (name) => (event) => {
@@ -330,6 +383,28 @@ function App({ entry = 0 }) {
       status: "warning",
       duration: "4000",
       onCloseComplete: setWarn(false),
+    });
+  };
+  const showCodeWarn = () => {
+    toast({
+      title: "Warning",
+      description:
+        "All codes expire after 30 days. Please make a backup if it's important.",
+      isClosable: true,
+      status: "warning",
+      duration: "4000",
+      onCloseComplete: setCodeWarn(false),
+    });
+  };
+  const showError = () => {
+    toast({
+      title: "Error",
+      description:
+        "We encountered an error while loading the link, please check your URL and try again. There is a chance that the code has expired too (All codes expire after 30 days)",
+      isClosable: true,
+      status: "error",
+      duration: "7000",
+      onCloseComplete: setError(false),
     });
   };
   return (
@@ -433,16 +508,40 @@ function App({ entry = 0 }) {
             </Flex>
           </Box>
           {LinkLoading && (
-            <Alert width="100%" padding="20px">
+            <Alert width="100%" padding="20px" borderRadius="10px">
               {LinkLoading && (
                 <AlertDescription>
                   {LinkLoading === "Generating Link..." && (
-                    <AlertDescription>{LinkLoading}</AlertDescription>
+                    <div>
+                      <Spinner />
+                      <AlertDescription paddingLeft="3px">
+                        {LinkLoading}
+                      </AlertDescription>
+                    </div>
                   )}
                   {LinkLoading !== "Generating Link..." && (
-                    <Link href={LinkLoading}>{LinkLoading}</Link>
+                    <AlertTitle width="100%" justifyContent="center">
+                      <Link isExternal={true} href={LinkLoading}>
+                        {LinkLoading}
+                      </Link>
+                    </AlertTitle>
                   )}
                 </AlertDescription>
+              )}
+              {LinkLoading !== "Generating Link..." && (
+                <Box>
+                  <IconButton
+                    position="absolute"
+                    right="15px"
+                    top="12px"
+                    as={MdContentCopy}
+                    color="white"
+                    bg="transparent"
+                    onClick={() => {
+                      navigator.clipboard.writeText(LinkLoading);
+                    }}
+                  />
+                </Box>
               )}
             </Alert>
           )}
@@ -520,6 +619,8 @@ function App({ entry = 0 }) {
         </Link>
       </Alert>
       {Warn && showWarning()}
+      {Error && showError()}
+      {CodeWarn && showCodeWarn()}
     </Box>
   );
 }

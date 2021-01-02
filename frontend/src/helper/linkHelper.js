@@ -1,4 +1,4 @@
-const API = "http://localhost:8000/";
+import { API } from "../backend";
 export const newCode = (postCode) => {
   return fetch(`${API}postCode`, {
     method: "POST",
