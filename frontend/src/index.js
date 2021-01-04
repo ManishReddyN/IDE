@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { extendTheme, ChakraProvider } from "@chakra-ui/react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+
 import Routes from "./Routes";
 const config = {
   useSystemColorMode: false,
@@ -15,3 +17,4 @@ ReactDOM.render(
   </ChakraProvider>,
   document.getElementById("root")
 );
+serviceWorkerRegistration.register();

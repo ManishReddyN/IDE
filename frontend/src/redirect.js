@@ -34,7 +34,6 @@ function Redirection({ match }) {
         setError(true);
         setLoading(false);
       } else {
-        console.log(k.language, k.code, k.input, k.output);
         localStorageSetter(k.language, k.code, k.input, k.output);
         setLoading(false);
       }

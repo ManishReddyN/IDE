@@ -2,6 +2,7 @@ import AceEditor from "react-ace";
 import "ace-builds/src-min-noconflict/ext-searchbox";
 import "ace-builds/src-min-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/theme-dracula";
+import "ace-builds/src-noconflict/mode-python";
 import "./App.css";
 import "./components/Nav";
 import Nav from "./components/Nav";
@@ -12,7 +13,6 @@ import {
   Grid,
   Heading,
   Textarea,
-  Container,
   Menu,
   MenuButton,
   MenuOptionGroup,
@@ -88,11 +88,6 @@ class Rextester
   `print("Python is the Best")`,
 ];
 
-languages.forEach((lang) => {
-  if (lang === "c" || lang === "c++") lang = "c_cpp";
-  require(`ace-builds/src-noconflict/mode-${lang}`);
-});
-
 //-------------------------------------------------------------------------------
 
 function App({ entry = 1 }) {
@@ -134,13 +129,11 @@ function App({ entry = 1 }) {
         }
       }
     } else if (Entry === 1) {
-      console.log(Entry);
       let localValues = loadStorage();
       if (localValues !== undefined) {
         setLanguage(localValues[0]);
         setPro(localValues[1]);
         setInput(localValues[2]);
-        console.log(localValues[3]);
         setOutput(localValues[3]);
         let index = languages.indexOf(localValues[0]);
         setCArgs(compilerArgs[index]);
@@ -241,7 +234,6 @@ function App({ entry = 1 }) {
       code.push(Input);
       code.push(output);
       localStorage.setItem("code", JSON.stringify(code));
-      console.log(JSON.parse(localStorage.getItem("code")));
     }
   };
 
@@ -295,7 +287,6 @@ function App({ entry = 1 }) {
     setLoading(true);
     setCodeWarn(true);
     setLinkLoading("Generating Link...");
-    console.log(Loading);
     let code = [];
     if (typeof window !== undefined) {
       if (localStorage.getItem("code")) {
@@ -352,7 +343,6 @@ function App({ entry = 1 }) {
               console.log(data.error);
             } else {
               setLinkLoading(domain + data.shortid);
-              console.log(data);
             }
           })
           .catch((err) => console.log(err));
@@ -362,12 +352,6 @@ function App({ entry = 1 }) {
       });
 
     setLoading(false);
-  };
-
-  const NewlineText = (props) => {
-    const text = props.text;
-    text.replace(" ", "\u00a0");
-    return <p style={{ whiteSpace: "pre-wrap" }}>{text}</p>;
   };
 
   const handleInput = (name) => (event) => {
@@ -430,11 +414,17 @@ function App({ entry = 1 }) {
                       <MenuItemOption
                         key={language}
                         value={language}
-                        onClick={async () => {
+                        onClick={() => {
                           setWarn(false);
                           if (language === "c" || language === "c++") {
                             setMode("c_cpp");
-                          } else setMode(language);
+                            import(`ace-builds/src-noconflict/mode-c_cpp`);
+                          } else {
+                            setMode(language);
+                            import(
+                              `ace-builds/src-noconflict/mode-${language}`
+                            );
+                          }
                           setLanguage(language);
                           setChoice(choice[index]);
                           setPro(templateCode[index]);
@@ -555,11 +545,13 @@ function App({ entry = 1 }) {
               </Heading>
               <Textarea
                 size="md"
-                resize="none"
+                width="100%"
                 height="100%"
+                resize="both"
                 placeholder="Enter your Input here"
                 onChange={handleInput("Input")}
                 value={Input}
+                whiteSpace="pre"
               />
             </Box>
             {Loading && (
@@ -574,17 +566,16 @@ function App({ entry = 1 }) {
                 <Icon as={VscOutput} w={6} h={6} />
                 OUTPUT
               </Heading>
-              <Container
-                minHeight="230px"
-                maxWidth="100%"
-                borderWidth="1px"
-                borderRadius="7px"
-                borderColor="rgba(255, 255, 255, 0.16)"
-                marginRight="0"
-                marginLeft="0"
-              >
-                <NewlineText text={Output} />
-              </Container>
+              <Textarea
+                size="md"
+                width="100%"
+                resize="both"
+                height="100%"
+                placeholder="Enter your Input here"
+                isReadOnly={true}
+                value={Output}
+                whiteSpace="pre"
+              />
             </Box>
             {Status && (
               <Box
