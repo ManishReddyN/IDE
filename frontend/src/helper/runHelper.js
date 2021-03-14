@@ -17,6 +17,9 @@ export const runHelper = (runArgs) => {
       return response.json();
     })
     .catch((err) => {
-      console.log(err);
+      return {
+        Errors:
+          "There is an error with the code running service. Will be fixed soon.",
+      };
     });
 };

@@ -244,8 +244,11 @@ function App({ entry = 1 }) {
     let output = "";
     runHelper(runArgs)
       .then((data) => {
+        console.log(data);
         if (data.Errors !== null) {
-          setOutput(data.Result + "\nErrors:\n" + data.Errors);
+          if (data.Result !== undefined)
+            setOutput(data.Result + "\nErrors:\n" + data.Errors);
+          else setOutput("Errors:\n" + data.Errors);
           setStatus("error");
           setStats(data.Stats);
           output = data.Result + "\nErrors:\n" + data.Errors;
