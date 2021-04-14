@@ -20,9 +20,10 @@ mongoose
   .catch(() => {
     console.log("Error Occurred While connecting");
   });
-
+const dev = "http://localhost:3000";
+const prod = "https://runcode.ml";
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://runcode.ml");
+  res.header("Access-Control-Allow-Origin", prod);
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"

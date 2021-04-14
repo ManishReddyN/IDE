@@ -1,25 +1,20 @@
+import { API } from "../backend";
+
 /* eslint-disable no-useless-escape */
 export const runHelper = (runArgs) => {
-  var formData = new FormData();
-  for (var i in runArgs) {
-    formData.append(i, runArgs[i]);
-  }
-
-  return fetch("https://rextester.com/rundotnet/api", {
+  return fetch(`${API}runCode`, {
     method: "POST",
-    body: formData,
-    // headers: {
-    //   "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-    //   Origin: null,
-    // },
+    body: JSON.stringify(runArgs),
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
     .then((response) => {
       return response.json();
     })
     .catch((err) => {
       return {
-        Errors:
-          "There is an error with the code running service. Will be fixed soon.",
+        Errors: "There is an error with the code running service.\n" + err,
       };
     });
 };

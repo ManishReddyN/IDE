@@ -55,7 +55,7 @@ function Redirection({ match }) {
         return response.json();
       })
       .catch((err) => {
-        console.log(err);
+        console.log("ERROR:", err);
       });
   };
 

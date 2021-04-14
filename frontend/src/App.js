@@ -41,14 +41,7 @@ import { VscOutput } from "react-icons/vsc";
 import { newCode } from "./helper/linkHelper";
 
 //ACE-Editor Settings and API Settings
-const languages = ["c", "c++", "java", "python"];
-const choice = [6, 7, 4, 24];
-const compilerArgs = [
-  "-Wall -std=gnu99 -O2 -o a.out source_file.c",
-  "-Wall -std=c++14 -O2 -o a.out source_file.cpp",
-  "",
-  "",
-];
+const languages = ["c", "cpp", "java", "python"];
 const templateCode = [
   `#include <stdio.h>
 
@@ -98,11 +91,9 @@ function App({ entry = 1 }) {
   //STATES
   const [Language, setLanguage] = useState("python");
   const [Mode, setMode] = useState("python");
-  const [Choice, setChoice] = useState(24);
   const [Output, setOutput] = useState("Run To Generate Output");
-  const [Pro, setPro] = useState("print('Python is the best!')");
+  const [Source, setSource] = useState("print('Python is the best!')");
   const [Input, setInput] = useState("");
-  const [CArgs, setCArgs] = useState("");
   const [Status, setStatus] = useState();
   const [Stats, setStats] = useState();
   const [Loading, setLoading] = useState(false);
@@ -118,10 +109,8 @@ function App({ entry = 1 }) {
       let localValues = loadStorage();
       if (localValues !== undefined) {
         setLanguage(localValues[0]);
-        setPro(localValues[1]);
+        setSource(localValues[1]);
         let index = languages.indexOf(localValues[0]);
-        setCArgs(compilerArgs[index]);
-        setChoice(choice[index]);
         if (index === 0 || index === 1) {
           setMode("c_cpp");
         } else {
@@ -132,12 +121,10 @@ function App({ entry = 1 }) {
       let localValues = loadStorage();
       if (localValues !== undefined) {
         setLanguage(localValues[0]);
-        setPro(localValues[1]);
+        setSource(localValues[1]);
         setInput(localValues[2]);
         setOutput(localValues[3]);
         let index = languages.indexOf(localValues[0]);
-        setCArgs(compilerArgs[index]);
-        setChoice(choice[index]);
         if (index === 0 || index === 1) {
           setMode("c_cpp");
         } else {
@@ -150,10 +137,8 @@ function App({ entry = 1 }) {
       let localValues = loadStorage();
       if (localValues !== undefined) {
         setLanguage(localValues[0]);
-        setPro(localValues[1]);
+        setSource(localValues[1]);
         let index = languages.indexOf(localValues[0]);
-        setCArgs(compilerArgs[index]);
-        setChoice(choice[index]);
         if (index === 0 || index === 1) {
           setMode("c_cpp");
         } else {
@@ -169,55 +154,54 @@ function App({ entry = 1 }) {
     setLoading(true);
     let code = [];
     if (typeof window !== undefined) {
-      if (localStorage.getItem("code")) {
-        code = JSON.parse(localStorage.getItem("code"));
+      if (localStorage.getItem("source")) {
+        code = JSON.parse(localStorage.getItem("source"));
         code = [];
       }
       code.push(Language);
-      code.push(Pro);
+      code.push(Source);
       code.push(Input);
       code.push(Output);
-      localStorage.setItem("code", JSON.stringify(code));
+      localStorage.setItem("source", JSON.stringify(code));
     }
     setLoading(false);
     //eslint-disable-next-line
-  }, [Pro, Language]);
+  }, [Source, Language]);
 
   const loadStorage = () => {
     if (typeof window !== undefined) {
-      if (localStorage.getItem("code")) {
-        return JSON.parse(localStorage.getItem("code"));
+      if (localStorage.getItem("source")) {
+        return JSON.parse(localStorage.getItem("source"));
       } else {
         let code = ["python", "", "", "Run to Generate Output"];
-        localStorage.setItem("code", JSON.stringify(code));
+        localStorage.setItem("source", JSON.stringify(code));
       }
     }
   };
 
   function onChange(newValue) {
-    setPro(newValue);
+    setSource(newValue);
   }
 
   var runArgs = {
-    LanguageChoice: String(Choice),
-    Program: Pro,
-    Input: Input,
-    CompilerArgs: CArgs,
+    language: Language,
+    source: Source,
+    stdin: Input,
   };
 
   const save = () => {
     setLoading(true);
     let code = [];
     if (typeof window !== undefined) {
-      if (localStorage.getItem("code")) {
-        code = JSON.parse(localStorage.getItem("code"));
+      if (localStorage.getItem("source")) {
+        code = JSON.parse(localStorage.getItem("source"));
         code = [];
       }
       code.push(Language);
-      code.push(Pro);
+      code.push(Source);
       code.push(Input);
       code.push(Output);
-      localStorage.setItem("code", JSON.stringify(code));
+      localStorage.setItem("source", JSON.stringify(code));
     }
     setLoading(false);
   };
@@ -225,15 +209,15 @@ function App({ entry = 1 }) {
   const localStorageSetter = (output = Output) => {
     let code = [];
     if (typeof window !== undefined) {
-      if (localStorage.getItem("code")) {
-        code = JSON.parse(localStorage.getItem("code"));
+      if (localStorage.getItem("source")) {
+        code = JSON.parse(localStorage.getItem("source"));
         code = [];
       }
       code.push(Language);
-      code.push(Pro);
+      code.push(Source);
       code.push(Input);
       code.push(output);
-      localStorage.setItem("code", JSON.stringify(code));
+      localStorage.setItem("source", JSON.stringify(code));
     }
   };
 
@@ -245,39 +229,20 @@ function App({ entry = 1 }) {
     runHelper(runArgs)
       .then((data) => {
         console.log(data);
-        if (data.Errors !== null) {
-          if (data.Result !== undefined)
-            setOutput(data.Result + "\nErrors:\n" + data.Errors);
-          else setOutput("Errors:\n" + data.Errors);
+        if (data.stderr !== "") {
+          setOutput("Errors:\n" + data.stderr);
           setStatus("error");
-          setStats(data.Stats);
-          output = data.Result + "\nErrors:\n" + data.Errors;
+          output = data.output;
           localStorageSetter(output);
-        } else if (data.Warnings && data.Result) {
-          setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
-          setStatus("warning");
-          setStats(data.Stats);
-          output = data.Result + "\n \nWarnings:\n" + data.Warnings;
-          localStorageSetter(output);
-        } else if (data.Result) {
+        } else if (data.stdout !== "") {
           setStatus("success");
-          setOutput(data.Result);
-          setStats(data.Stats);
-          output = data.Result;
-          localStorageSetter(output);
-        } else if (data.Warnings) {
-          setOutput("Warnings:" + data.Warnings);
-          setStatus("warning");
-          setStats(data.Stats);
-          output = "Warnings:" + data.Warnings;
+          setOutput(data.stdout);
+          output = data.stdout;
           localStorageSetter(output);
         } else {
-          setOutput("Please try again");
-          output = "Please try again";
-          if (data.Stats !== undefined) {
-            setStatus("error");
-            setStats(data.Stats);
-          }
+          setOutput("Please try again, no output is generated!");
+          output = "Please try again, no output is generated!";
+          setStatus("error");
           localStorageSetter(output);
         }
         setLoading(false);
@@ -290,70 +255,39 @@ function App({ entry = 1 }) {
     setLoading(true);
     setCodeWarn(true);
     setLinkLoading("Generating Link...");
-    let code = [];
-    if (typeof window !== undefined) {
-      if (localStorage.getItem("code")) {
-        code = JSON.parse(localStorage.getItem("code"));
-        code = [];
-      }
-      code.push(Language);
-      code.push(Pro);
-      code.push(Input);
-      code.push(Output);
-      localStorage.setItem("code", JSON.stringify(code));
-    }
+    localStorageSetter();
     setOutput("running...");
-    let output = "";
-    runHelper(runArgs)
+
+    newCode({
+      language: Language,
+      code: Source,
+      input: Input,
+    })
       .then((data) => {
-        if (data.Errors !== null) {
-          setOutput(data.Result + "\nErrors:\n" + data.Errors);
-          output = data.Result + "\nErrors:\n" + data.Errors;
-          setStatus("error");
-          setStats(data.Stats);
-        } else if (data.Warnings && data.Result) {
-          setOutput(data.Result + "\n \nWarnings:\n" + data.Warnings);
-          output = data.Result + "\n \nWarnings:\n" + data.Warnings;
-          setStatus("warning");
-          setStats(data.Stats);
-        } else if (data.Result) {
-          setStatus("success");
-          setOutput(data.Result);
-          output = data.Result;
-          setStats(data.Stats);
-        } else if (data.Warnings) {
-          setOutput("Warnings:" + data.Warnings);
-          output = "Warnings:" + data.Warnings;
-          setStatus("warning");
-          setStats(data.Stats);
+        if (data.error) {
+          console.log(data.error);
         } else {
-          setOutput("Please try again");
-          output = "Please try again";
-          if (data.Stats !== undefined) {
+          setLinkLoading(domain + data.shortid);
+          let output = "";
+          if (data.stderr !== "") {
+            setOutput("Errors:\n" + data.stderr);
             setStatus("error");
-            setStats(data.Stats);
+            output = data.output;
+            localStorageSetter(output);
+          } else if (data.stdout !== "") {
+            setStatus("success");
+            setOutput(data.stdout);
+            output = data.stdout;
+            localStorageSetter(output);
+          } else {
+            setOutput("Please try again, no output is generated!");
+            output = "Please try again, no output is generated!";
+            setStatus("error");
+            localStorageSetter(output);
           }
         }
-
-        newCode({
-          language: Language,
-          code: Pro,
-          input: Input,
-          output: output,
-        })
-          .then((data) => {
-            if (data.error) {
-              console.log(data.error);
-            } else {
-              setLinkLoading(domain + data.shortid);
-            }
-          })
-          .catch((err) => console.log(err));
       })
-      .catch((err) => {
-        console.log(err);
-      });
-
+      .catch((err) => console.log(err));
     setLoading(false);
   };
 
@@ -362,6 +296,7 @@ function App({ entry = 1 }) {
     setInput(value);
   };
   const showWarning = () => {
+    toast.closeAll();
     toast({
       title: "Warning",
       description:
@@ -373,6 +308,7 @@ function App({ entry = 1 }) {
     });
   };
   const showCodeWarn = () => {
+    toast.closeAll();
     toast({
       title: "Warning",
       description:
@@ -384,6 +320,7 @@ function App({ entry = 1 }) {
     });
   };
   const showError = () => {
+    toast.closeAll();
     toast({
       title: "Error",
       description:
@@ -419,7 +356,7 @@ function App({ entry = 1 }) {
                         value={language}
                         onClick={() => {
                           setWarn(false);
-                          if (language === "c" || language === "c++") {
+                          if (language === "c" || language === "cpp") {
                             setMode("c_cpp");
                             import(`ace-builds/src-noconflict/mode-c_cpp`);
                           } else {
@@ -429,9 +366,7 @@ function App({ entry = 1 }) {
                             );
                           }
                           setLanguage(language);
-                          setChoice(choice[index]);
-                          setPro(templateCode[index]);
-                          setCArgs(compilerArgs[index]);
+                          setSource(templateCode[index]);
                         }}
                       >
                         {language.charAt(0).toUpperCase() + language.slice(1)}
@@ -450,8 +385,8 @@ function App({ entry = 1 }) {
               mode={Mode}
               theme="dracula"
               onChange={onChange}
-              name="code"
-              value={Pro}
+              name="source"
+              value={Source}
               editorProps={{ $blockScrolling: true }}
               setOptions={{
                 enableBasicAutocompletion: true,
@@ -549,7 +484,7 @@ function App({ entry = 1 }) {
               <Textarea
                 size="md"
                 width="100%"
-                height="100%"
+                height="220px"
                 resize="both"
                 placeholder="Enter your Input here"
                 onChange={handleInput("Input")}
@@ -573,7 +508,7 @@ function App({ entry = 1 }) {
                 size="md"
                 width="100%"
                 resize="both"
-                height="100%"
+                height="220px"
                 placeholder="Enter your Input here"
                 isReadOnly={true}
                 value={Output}
@@ -602,7 +537,7 @@ function App({ entry = 1 }) {
       <Alert
         justifyContent="center"
         textAlign="center"
-        marginTop="10px"
+        marginTop="20px"
         borderRadius="12px"
       >
         Made with ❤️️ by
