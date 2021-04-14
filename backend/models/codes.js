@@ -24,7 +24,7 @@ const code = mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    expires: "30d",
+    expires: "1y",
     default: Date.now,
   },
 });
