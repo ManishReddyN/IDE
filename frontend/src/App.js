@@ -388,6 +388,7 @@ function App({ entry = 1 }) {
               onChange={onChange}
               name="source"
               value={Source}
+              label="Editor Area"
               editorProps={{ $blockScrolling: true }}
               setOptions={{
                 enableBasicAutocompletion: true,
