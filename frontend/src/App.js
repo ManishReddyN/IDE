@@ -312,7 +312,8 @@ function App({ entry = 1 }) {
     toast({
       title: "Warning",
       description:
-        "All codes expire after 30 days. Please make a backup if it's important.",
+        "All codes expire after 1 Year. Please make a backup if it's important.",
+      position: "top",
       isClosable: true,
       status: "warning",
       duration: "4000",
