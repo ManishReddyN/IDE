@@ -39,6 +39,7 @@ import { BiLink, BiRun, BiSave } from "react-icons/bi";
 import { MdContentCopy, MdInput } from "react-icons/md";
 import { VscOutput } from "react-icons/vsc";
 import { newCode } from "./helper/linkHelper";
+import hotkeys from "hotkeys-js";
 
 //ACE-Editor Settings and API Settings
 const languages = ["c", "cpp", "java", "python"];
@@ -95,7 +96,6 @@ function App({ entry = 1 }) {
   const [Source, setSource] = useState("print('Python is the best!')");
   const [Input, setInput] = useState("");
   const [Status, setStatus] = useState();
-  const [Stats, setStats] = useState();
   const [Loading, setLoading] = useState(false);
   const [LinkLoading, setLinkLoading] = useState("");
   const [Warn, setWarn] = useState(false);
@@ -191,6 +191,7 @@ function App({ entry = 1 }) {
 
   const save = () => {
     setLoading(true);
+    console.log("save");
     let code = [];
     if (typeof window !== undefined) {
       if (localStorage.getItem("source")) {
@@ -332,6 +333,11 @@ function App({ entry = 1 }) {
       onCloseComplete: setError(false),
     });
   };
+
+  hotkeys("ctrl+s,command+s", (event, handler) => {
+    event.preventDefault();
+    save();
+  });
   return (
     <Box>
       <Nav />
@@ -384,6 +390,16 @@ function App({ entry = 1 }) {
               width="100%"
               fontSize="1rem"
               mode={Mode}
+              commands={[
+                {
+                  name: "save",
+                  bindKey: {
+                    win: "Ctrl-s|Ctrl-Enter,",
+                    mac: "Cmd-s|Cmd-Enter",
+                  },
+                  exec: () => save(),
+                },
+              ]}
               theme="dracula"
               onChange={onChange}
               name="source"
@@ -529,7 +545,6 @@ function App({ entry = 1 }) {
                   <AlertTitle>
                     {Status.charAt(0).toUpperCase() + Status.slice(1)}
                   </AlertTitle>
-                  <AlertDescription>{Stats}</AlertDescription>
                 </Alert>
               </Box>
             )}
