@@ -181,9 +181,7 @@ function App({ entry = 1 }) {
 
   const save = () => {
     setLoading(true);
-    console.log("save");
     let code = [];
-    console.log(Source);
     if (typeof window !== undefined) {
       if (localStorage.getItem("source")) {
         code = JSON.parse(localStorage.getItem("source"));
@@ -220,7 +218,6 @@ function App({ entry = 1 }) {
     let output = "";
     runHelper(runArgs)
       .then((data) => {
-        console.log(data);
         if (data.stderr !== "") {
           setOutput("Errors:\n" + data.stderr);
           setStatus("error");
@@ -380,18 +377,6 @@ function App({ entry = 1 }) {
               width="100%"
               fontSize="1rem"
               mode={Mode}
-              commands={[
-                {
-                  name: "save",
-                  bindKey: {
-                    win: "Ctrl-s|Ctrl-Enter,",
-                    mac: "Cmd-s|Cmd-Enter",
-                  },
-                  exec: () => {
-                    save();
-                  },
-                },
-              ]}
               theme="dracula"
               onChange={onChange}
               name="source"
