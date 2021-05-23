@@ -16,15 +16,15 @@ function Redirection({ match }) {
   const localStorageSetter = (Language, Pro, Input, Output) => {
     let code = [];
     if (typeof window !== undefined) {
-      if (localStorage.getItem("code")) {
-        code = JSON.parse(localStorage.getItem("code"));
+      if (localStorage.getItem("source")) {
+        code = JSON.parse(localStorage.getItem("source"));
         code = [];
       }
       code.push(Language);
       code.push(Pro);
       code.push(Input);
       code.push(Output);
-      localStorage.setItem("code", JSON.stringify(code));
+      localStorage.setItem("source", JSON.stringify(code));
     }
   };
 

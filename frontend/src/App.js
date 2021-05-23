@@ -39,7 +39,6 @@ import { BiLink, BiRun, BiSave } from "react-icons/bi";
 import { MdContentCopy, MdInput } from "react-icons/md";
 import { VscOutput } from "react-icons/vsc";
 import { newCode } from "./helper/linkHelper";
-import hotkeys from "hotkeys-js";
 
 //ACE-Editor Settings and API Settings
 const languages = ["c", "cpp", "java", "python"];
@@ -66,13 +65,12 @@ int main()
     //--------------------
     return 0;
 }`,
-  `//'main' method must be in a class 'Rextester'.
-//openjdk version '11.0.5'
+  `//openjdk version '11.0.5'
 
 import java.util.*;
 import java.lang.*;
 
-class Rextester
+class YouRock
 {  
     public static void main(String args[])
     {
@@ -105,19 +103,7 @@ function App({ entry = 1 }) {
   //-----------------------------
 
   useEffect(() => {
-    if (Entry === 0) {
-      let localValues = loadStorage();
-      if (localValues !== undefined) {
-        setLanguage(localValues[0]);
-        setSource(localValues[1]);
-        let index = languages.indexOf(localValues[0]);
-        if (index === 0 || index === 1) {
-          setMode("c_cpp");
-        } else {
-          setMode(localValues[0]);
-        }
-      }
-    } else if (Entry === 1) {
+    if (Entry === 1) {
       let localValues = loadStorage();
       if (localValues !== undefined) {
         setLanguage(localValues[0]);
@@ -127,8 +113,10 @@ function App({ entry = 1 }) {
         let index = languages.indexOf(localValues[0]);
         if (index === 0 || index === 1) {
           setMode("c_cpp");
+          import(`ace-builds/src-noconflict/mode-c_cpp`);
         } else {
           setMode(localValues[0]);
+          import(`ace-builds/src-noconflict/mode-${localValues[0]}`);
         }
       }
       setEntry(0);
@@ -141,8 +129,10 @@ function App({ entry = 1 }) {
         let index = languages.indexOf(localValues[0]);
         if (index === 0 || index === 1) {
           setMode("c_cpp");
+          import(`ace-builds/src-noconflict/mode-c_cpp`);
         } else {
           setMode(localValues[0]);
+          import(`ace-builds/src-noconflict/mode-${localValues[0]}`);
         }
       }
       setEntry(0);
@@ -193,6 +183,7 @@ function App({ entry = 1 }) {
     setLoading(true);
     console.log("save");
     let code = [];
+    console.log(Source);
     if (typeof window !== undefined) {
       if (localStorage.getItem("source")) {
         code = JSON.parse(localStorage.getItem("source"));
@@ -334,10 +325,6 @@ function App({ entry = 1 }) {
     });
   };
 
-  hotkeys("ctrl+s,command+s", (event, handler) => {
-    event.preventDefault();
-    save();
-  });
   return (
     <Box>
       <Nav />
@@ -356,21 +343,24 @@ function App({ entry = 1 }) {
                   {Language.charAt(0).toUpperCase() + Language.slice(1)}
                 </MenuButton>
                 <MenuList minWidth="240px">
-                  <MenuOptionGroup defaultValue={Language} type="radio">
+                  <MenuOptionGroup
+                    defaultValue={localStorage.getItem("source")[0]}
+                    type="radio"
+                  >
                     {languages.map((language, index) => (
                       <MenuItemOption
-                        key={language}
+                        key={index}
                         value={language}
                         onClick={() => {
                           setWarn(false);
                           if (language === "c" || language === "cpp") {
-                            setMode("c_cpp");
                             import(`ace-builds/src-noconflict/mode-c_cpp`);
+                            setMode("c_cpp");
                           } else {
-                            setMode(language);
                             import(
                               `ace-builds/src-noconflict/mode-${language}`
                             );
+                            setMode(language);
                           }
                           setLanguage(language);
                           setSource(templateCode[index]);
@@ -397,7 +387,9 @@ function App({ entry = 1 }) {
                     win: "Ctrl-s|Ctrl-Enter,",
                     mac: "Cmd-s|Cmd-Enter",
                   },
-                  exec: () => save(),
+                  exec: () => {
+                    save();
+                  },
                 },
               ]}
               theme="dracula"

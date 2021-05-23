@@ -23,7 +23,7 @@ mongoose
 const dev = "*";
 const prod = "https://runcode.ml";
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", dev);
+  res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
