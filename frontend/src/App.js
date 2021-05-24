@@ -104,6 +104,7 @@ function App({ entry = 1 }) {
 
   useEffect(() => {
     if (Entry === 1) {
+      console.log(Entry);
       let localValues = loadStorage();
       if (localValues !== undefined) {
         setLanguage(localValues[0]);
@@ -341,8 +342,13 @@ function App({ entry = 1 }) {
                 </MenuButton>
                 <MenuList minWidth="240px">
                   <MenuOptionGroup
-                    defaultValue={localStorage.getItem("source")[0]}
+                    defaultValue={
+                      localStorage.getItem("source") !== null
+                        ? localStorage.getItem("source")[0]
+                        : "python"
+                    }
                     type="radio"
+                    value={Language}
                   >
                     {languages.map((language, index) => (
                       <MenuItemOption
