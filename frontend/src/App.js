@@ -338,7 +338,9 @@ function App({ entry = 1 }) {
                   colorScheme="blue"
                   onClick={() => setWarn(!Warn)}
                 >
-                  {Language.charAt(0).toUpperCase() + Language.slice(1)}
+                  {Language === "cpp"
+                    ? "C++"
+                    : Language.charAt(0).toUpperCase() + Language.slice(1)}
                 </MenuButton>
                 <MenuList minWidth="240px">
                   <MenuOptionGroup
@@ -369,7 +371,10 @@ function App({ entry = 1 }) {
                           setSource(templateCode[index]);
                         }}
                       >
-                        {language.charAt(0).toUpperCase() + language.slice(1)}
+                        {language === "cpp"
+                          ? "C++"
+                          : language.charAt(0).toUpperCase() +
+                            language.slice(1)}
                       </MenuItemOption>
                     ))}
                   </MenuOptionGroup>
